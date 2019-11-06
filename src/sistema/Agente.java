@@ -6,9 +6,7 @@ import arvore.fnComparator;
 import problema.*;
 import comuns.*;
 import static comuns.PontosCardeais.*;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,7 +30,6 @@ public class Agente implements PontosCardeais {
     static int ct = -1;
     
     String [][] oponentes = new String[9][9];
-    int lin_oponente;
     
     String filename="src/Oponentes.txt";
     Path pathToFile = Paths.get(filename);
@@ -62,7 +59,7 @@ public class Agente implements PontosCardeais {
         prob.crencaLabir.porParedeVertical(6, 7, 4);
         prob.crencaLabir.porParedeVertical(5, 6, 5);
         prob.crencaLabir.porParedeVertical(5, 7, 7);
-        porOponentes();
+        
 
         // Estado inicial, objetivo e atual
         //posiciona fisiscamente o agente no estado inicial
@@ -79,16 +76,17 @@ public class Agente implements PontosCardeais {
 
     }
     
-    public void porOponentes(){
-        
-        
+    public int porOponentes(int lin_oponente){
         for (int lin = 0; lin < prob.maxLin; lin++){
             for (int col = 0; col < prob.maxCol; col++){
                 if (prob.crencaLabir.parede[lin][col] != 1)
                 {
                     try {
                         oponentes[lin][col] = (String) Files.readAllLines(pathToFile).get(lin_oponente);
-                        lin_oponente ++;
+                        lin_oponente = lin_oponente + 1;
+                        if (lin_oponente > 5507){
+                            lin_oponente = 8;
+                        }
                     } catch (IOException ex) {
                         Logger.getLogger(Agente.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -97,6 +95,7 @@ public class Agente implements PontosCardeais {
                 }
             }
         }
+        return lin_oponente;
     }
 
     public void printPlano() {

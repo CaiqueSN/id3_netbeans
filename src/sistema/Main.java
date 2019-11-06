@@ -37,18 +37,29 @@ public class Main {
         
         FileWriter arq = null;
         int anterior = 0;
+        int lin_oponente = 8 + anterior;
+        int estrategia = 0; // estrategia = 0 : baseline, estrategia = 1 : J48
         
-        try {
-            arq = new FileWriter("src/resultados.txt");
-        } catch (IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        if(estrategia == 0){
+            try {
+                arq = new FileWriter("src/resultadosBaseline.txt");
+            } catch (IOException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
-        
+        else{
+            try {
+                arq = new FileWriter("src/resultadosJ48.txt");
+            } catch (IOException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
         
         
         PrintWriter gravarArq = new PrintWriter(arq);
         Agente ag = null;
         double custo_medio = 0;
+        
         
         for (int cenario = 1; cenario <= 100; cenario++){
             // seta a posição inicial do agente no ambiente - corresponde ao estado inicial
@@ -57,7 +68,9 @@ public class Main {
 
             // Cria um agente
             ag = new Agente(model);
-            ag.lin_oponente = 8 + anterior;
+            lin_oponente = ag.porOponentes(lin_oponente);
+            
+            
                     // marca no ambiente onde estah o objetivo - somente para visualizacao
             model.setObj(ag.prob.estObj.getLin(),ag.prob.estObj.getCol());
 
@@ -73,13 +86,27 @@ public class Main {
                 model.desenhar(); 
             }
             ag.ct = -1;
-            anterior = ag.lin_oponente;
-            gravarArq.printf("Baseline, Cenario: " + cenario + " Custo Total:" + ag.custo_total + "\n");
+            if(estrategia == 0){
+                gravarArq.printf("Baseline, Cenario: " + cenario + ", Custo Total:" + ag.custo_total + "\n");
+            }
+            else{
+                gravarArq.printf("J48, Cenario: " + cenario + ", Custo Total:" + ag.custo_total + "\n");
+            }
             custo_medio = custo_medio + ag.custo_total;
-            
         }
+        
+        
         custo_medio = custo_medio/100;
-        gravarArq.printf("Baseline, Custo Medio:" + custo_medio + "\n");
+        
+        if(estrategia == 0){
+            gravarArq.printf("\nBaseline, Custo Medio:" + custo_medio + " Linha final de Oponentes: " + lin_oponente + "\n");
+        }
+        else{
+            gravarArq.printf("\nJ48, Custo Medio:" + custo_medio + "\n");
+        }
+        
+        
+        
         try {
             arq.close();
         } catch (IOException ex) {
