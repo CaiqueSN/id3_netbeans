@@ -36,7 +36,7 @@ public class Agente implements PontosCardeais {
     
     
     Random random = new Random();
-    int empurrar, custo_empurrar;
+    int custo_empurrar;
     double custo_acao, custo_total;
     char oponente_gentil;
    
@@ -76,15 +76,15 @@ public class Agente implements PontosCardeais {
 
     }
     
-    public int porOponentes(int lin_oponente){
+    public int porOponentes(int lin_oponente){  // Colocar os oponentes, lendo pela linha do arquivo txt
         for (int lin = 0; lin < prob.maxLin; lin++){
             for (int col = 0; col < prob.maxCol; col++){
-                if (prob.crencaLabir.parede[lin][col] != 1)
+                if (prob.crencaLabir.parede[lin][col] != 1) // colocar nas posições sem parede
                 {
                     try {
                         oponentes[lin][col] = (String) Files.readAllLines(pathToFile).get(lin_oponente);
                         lin_oponente = lin_oponente + 1;
-                        if (lin_oponente > 5507){
+                        if (lin_oponente > 5507){ // se acabar as linhas do arquivo txt
                             lin_oponente = 8;
                         }
                     } catch (IOException ex) {
@@ -110,8 +110,9 @@ public class Agente implements PontosCardeais {
      * Escolhe qual ação será executada em um ciclo de raciocínio. Na 1a chamada
      * calcula um plano por meio de um algoritmo de busca. A partir da 2a
      * chamada, executa uma ação por vez do plano calculado.
+     * @param estrategia: 0 = baseline, 1 = j48
      */
-    public int deliberar() {
+    public int deliberar(int estrategia) {
         // realiza busca na 1a. chamada para elaborar um plano
         if (ct == -1) {
             plan = buscaCheapestFirst(0); //0=c.unif.; 1=A* com colunas; 2=A*=dist. Euclidiana
@@ -139,13 +140,62 @@ public class Agente implements PontosCardeais {
             return -1;
         }
         
+        String frase = oponentes[estAtu.getLin()][estAtu.getCol()];
+        String array[] = new String[5];
+        array = frase.split(",");
+        
+        int empurrar;
+        double massa = Double.parseDouble(array[0]);
+        double altura = Double.parseDouble(array[1]);
+        String dentes = array[2];
+        String corolhos = array[3];
         
         
         // empurrar = 0 -> nao empurra
         // empurrar = 1 -> empurra
+        if (estrategia == 0) // baseline = aleatoria
+        {
+            empurrar = random.nextInt(2);
+        }
+        else{
+            if (dentes.equals("normais")){
+                if (corolhos.equals("escura") || corolhos.equals("clara")){
+                    empurrar = 0;
+                }
+                else{
+                    if(massa <= 100.25){
+                        if (altura <= 1.82){
+                            empurrar = 1;
+                        }
+                        else{
+                            empurrar = 0;
+                        }
+                    }
+                    else{
+                        empurrar = 1;
+                    }
+                }
+            }
+            else{
+                if(massa <= 99.57){
+                    if (altura <= 1.81){
+                        empurrar = 1;
+                    }
+                    else{
+                        empurrar = 0;
+                    }
+                }
+                else{
+                    empurrar = 1;
+                }
+            }
+        }
+
+        
+        // confere se o oponente e gentil ou nao
         oponente_gentil = oponentes[estAtu.getLin()][estAtu.getCol()].charAt((oponentes[estAtu.getLin()][estAtu.getCol()].length()-1));
-    
-        empurrar = random.nextInt(2);
+        
+        //tabela de custos para multiplicar 
         if (empurrar == 0){
             if (oponente_gentil == 'S'){
                 custo_empurrar = 1;

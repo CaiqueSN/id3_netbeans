@@ -38,7 +38,7 @@ public class Main {
         FileWriter arq = null;
         int anterior = 0;
         int lin_oponente = 8 + anterior;
-        int estrategia = 0; // estrategia = 0 : baseline, estrategia = 1 : J48
+        int estrategia = 1; // estrategia = 0 : baseline, estrategia = 1 : J48
         
         if(estrategia == 0){
             try {
@@ -56,12 +56,12 @@ public class Main {
         }
         
         
-        PrintWriter gravarArq = new PrintWriter(arq);
+        PrintWriter gravarArq = new PrintWriter(arq); 
         Agente ag = null;
-        double custo_medio = 0;
+        double custo_medio = 0; // custo medio depois da execução dos 100 cenarios
         
         
-        for (int cenario = 1; cenario <= 100; cenario++){
+        for (int cenario = 1; cenario <= 100; cenario++){ // Para executar os 100 cenarios pedidos
             // seta a posição inicial do agente no ambiente - corresponde ao estado inicial
             model.setPos(8, 0);
 
@@ -82,7 +82,7 @@ public class Main {
             // o estado do labirinto porque ocupa passa a ocupar nova posicao)
 
             System.out.println("\n*** Inicio do ciclo de raciocinio do agente ***\n");
-            while (ag.deliberar() != -1) {  
+            while (ag.deliberar(estrategia) != -1) {  
                 model.desenhar(); 
             }
             ag.ct = -1;
