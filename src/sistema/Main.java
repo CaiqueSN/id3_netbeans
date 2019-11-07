@@ -38,7 +38,7 @@ public class Main {
         FileWriter arq = null;
         int anterior = 0;
         int lin_oponente = 8 + anterior;
-        int estrategia = 1; // estrategia = 0 : baseline, estrategia = 1 : J48
+        int estrategia = 0; // estrategia = 0 : baseline, estrategia = 1 : J48
         
         if(estrategia == 0){
             try {
@@ -102,7 +102,7 @@ public class Main {
             gravarArq.printf("\nBaseline, Custo Medio:" + custo_medio + " Linha final de Oponentes: " + lin_oponente + "\n");
         }
         else{
-            gravarArq.printf("\nJ48, Custo Medio:" + custo_medio + "\n");
+            gravarArq.printf("\nJ48, Custo Medio:" + custo_medio  + " Linha final de Oponentes: " + lin_oponente + "\n");
         }
         
         
