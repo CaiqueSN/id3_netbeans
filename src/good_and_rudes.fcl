@@ -1,0 +1,44 @@
+FUNCTION_BLOCK gentil_rude
+
+VAR_INPUT
+	massa : REAL;
+	altura : REAL;
+END_VAR
+
+VAR_OUTPUT
+	empurrao : REAL;
+END_VAR
+
+FUZZIFY massa
+    TERM magro := (0, 1) (50, 1) (70, 0); 
+	TERM normal := (50, 0) (70, 1) (90, 0);
+	TERM pesado := (80, 0) (110, 1) (150, 1);
+END_FUZZIFY
+
+FUZZIFY altura
+    TERM baixo := (0, 1) (150, 1) (170, 0); 
+	TERM medio := (160, 0) (175, 1) (190,0);
+	TERM alto := (175, 0) (220, 1) (250, 1);
+END_FUZZIFY
+
+DEFUZZIFY empurrao
+	TERM fraco := (0, 1) (20, 1) (40, 0);
+	TERM medio := (35, 0) (50, 1) (75, 0);
+	TERM forte := (60, 0) (90, 1) (100, 1);
+	METHOD : COG;
+	DEFAULT := 0;
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;	
+	ACT : MIN;
+	ACCU : MAX;
+
+	RULE 1 : IF massa IS magro AND altura IS baixo THEN empurrao IS fraco;
+	RULE 2 : IF massa IS pesado THEN empurrao IS forte; 
+	RULE 3 : IF massa IS normal AND altura IS alto THEN empurrao IS medio;
+    RULE 4 : IF massa IS magro AND altura IS alto THEN empurrao IS fraco;
+    RULE 5 : IF massa IS normal AND altura IS baixo THEN empurrao IS medio;
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
