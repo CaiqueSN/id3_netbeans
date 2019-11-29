@@ -35,10 +35,16 @@ public class Main {
         model.labir.porParedeVertical(5, 7, 7);
         
         
-        FileWriter arq = null;
+        FileWriter arq = null, arqIntensidade = null;
         int anterior = 0;
         int lin_oponente = 8 + anterior;
-        int estrategia = 0; // estrategia = 0 : baseline, estrategia = 1 : J48
+        int estrategia = 1; // estrategia = 0 : baseline, estrategia = 1 : J48
+        
+        try {
+                arqIntensidade = new FileWriter("src/intensidades.txt");
+            } catch (IOException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
         
         if(estrategia == 0){
             try {
@@ -55,15 +61,15 @@ public class Main {
             }
         }
         
-        
+        PrintWriter gravarArqIntensidade = new PrintWriter(arqIntensidade);
         PrintWriter gravarArq = new PrintWriter(arq); 
         Agente ag = null;
-        double custo_medio = 0; // custo medio depois da execução dos 100 cenarios
-        
+        double custo_medio = 0, erro_medio_total = 0, erro_medio = 0; // custo medio depois da execução dos 100 cenarios
+        int intensidades_erradas_totais = 0, intensidades_certas_totais = 0, totais= 0;
         
         for (int cenario = 1; cenario <= 100; cenario++){ // Para executar os 100 cenarios pedidos
             // seta a posição inicial do agente no ambiente - corresponde ao estado inicial
-            model.setPos(8, 0);
+            model.setPos(8, 4);
 
 
             // Cria um agente
@@ -92,12 +98,22 @@ public class Main {
             else{
                 gravarArq.printf("J48, Cenario: " + cenario + ", Custo Total:" + ag.custo_total + "\n");
             }
+            
+            intensidades_erradas_totais += ag.empurrao_errado;
+            intensidades_certas_totais += ag.empurrao_certo;
+            totais += ag.total;
+            erro_medio = ag.erroMedio / ag.total;
+            
+            
+            gravarArqIntensidade.printf("Intensidades Erradas: " + ag.empurrao_errado + ", Intensidades Certas: " + ag.empurrao_certo + ", Total: "+ ag.total +", Erro médio: " + erro_medio + "\n");
+            
+            erro_medio_total += erro_medio;
             custo_medio = custo_medio + ag.custo_total;
         }
         
         
         custo_medio = custo_medio/100;
-        
+        erro_medio_total /= 100;
         if(estrategia == 0){
             gravarArq.printf("\nBaseline, Custo Medio:" + custo_medio + " Linha final de Oponentes: " + lin_oponente + "\n");
         }
@@ -105,8 +121,13 @@ public class Main {
             gravarArq.printf("\nJ48, Custo Medio:" + custo_medio  + " Linha final de Oponentes: " + lin_oponente + "\n");
         }
         
-        
-        
+        gravarArqIntensidade.printf("\n\nIntensidades Erradas Totais: " + intensidades_erradas_totais + ", Intensidades Certas Totais: " + intensidades_certas_totais + ", Total: "+ totais +", Erro médio: " + erro_medio_total + "\n");
+            
+        try {
+            arqIntensidade.close();
+        } catch (IOException ex) {
+            Logger.getLogger(Agente.class.getName()).log(Level.SEVERE, null, ex);
+        }
         try {
             arq.close();
         } catch (IOException ex) {

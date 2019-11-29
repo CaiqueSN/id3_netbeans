@@ -14,6 +14,10 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Random;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import static java.lang.Math.abs;
 
 /**
  *
@@ -26,8 +30,9 @@ public class Agente implements PontosCardeais {
     Problema prob;
     Estado estAtu; // guarda o estado atual (posição atual do agente)
     int plan[];
-    double custo;
+    double custo, erroMedio = 0;
     static int ct = -1;
+    int empurrao_certo = 0, empurrao_errado = 0, total = 0;
     
     String [][] oponentes = new String[9][9];
     
@@ -106,11 +111,103 @@ public class Agente implements PontosCardeais {
         System.out.println("FIM\n\n");
     }
 
+    
+    public double intensidadeReal(double massa, double altura)
+    {
+        return (massa * altura/2)/altura;
+    }
+    public double intensidadeAgente(double massa, double altura)
+    {
+        String massa_s, altura_s;
+        double empurrao = 0;
+        if (massa < 70)
+        {
+            massa_s = "magro";
+        }
+        else if(massa < 90)
+        {
+            massa_s = "normal";
+        }
+        else
+        {
+            massa_s = "pesado";
+        }
+        
+        if (altura < 160)
+        {
+            altura_s = "baixo";
+        }
+        else if( altura < 190)
+        {
+            altura_s = "medio";
+        }
+        else
+        {
+            altura_s = "alto";
+        }
+        
+        if (massa_s.equals("magro"))
+        {
+            if (altura_s.equals("baixo"))
+            {
+                empurrao = 30;
+            }
+            if (altura_s.equals("medio"))
+            {
+                empurrao = 40;
+            }
+            if (altura_s.equals("alto"))
+            {
+                empurrao = 50;
+            }
+        }
+        
+        if (massa_s.equals("normal"))
+        {
+            if (altura_s.equals("baixo"))
+            {
+                empurrao = 45;
+            }
+            if (altura_s.equals("medio"))
+            {
+                empurrao = 60;
+            }
+            if (altura_s.equals("alto"))
+            {
+                empurrao = 85;
+            }
+        }
+        
+        
+        if (massa_s.equals("pesado"))
+        {
+            if (altura_s.equals("baixo"))
+            {
+                empurrao = 75;
+            }
+            if (altura_s.equals("medio"))
+            {
+                empurrao = 95;
+            }
+            if (altura_s.equals("alto"))
+            {
+                empurrao = 110;
+            }
+        }
+        return empurrao;
+    }
+    
+    double erroPorcentagem(double real, double agente)
+    {
+        return abs((agente - real)/real)*100;
+    }
+    
     /**
      * Escolhe qual ação será executada em um ciclo de raciocínio. Na 1a chamada
      * calcula um plano por meio de um algoritmo de busca. A partir da 2a
      * chamada, executa uma ação por vez do plano calculado.
      * @param estrategia: 0 = baseline, 1 = j48
+     * @return 
      */
     public int deliberar(int estrategia) {
         // realiza busca na 1a. chamada para elaborar um plano
@@ -145,16 +242,12 @@ public class Agente implements PontosCardeais {
         array = frase.split(",");
         
         int empurrar;
-        double intensidade_empurrao;
+        double intensidade_empurrao_real, intensidade_empurrao_agente, erroPorc;
         double massa = Double.parseDouble(array[0]);
         double altura = Double.parseDouble(array[1]);
         String dentes = array[2];
         String corolhos = array[3];
-        
-        String massa_s;
-        String altura_s;
-        String empurrao_s;
-        
+       
         
         
         // empurrar = 0 -> nao empurra
@@ -196,63 +289,32 @@ public class Agente implements PontosCardeais {
                 }
             }
         }
-        
-        if (massa < 70)
-        {
-            massa_s = "magro";
-        }
-        else if(massa < 90)
-        {
-            massa_s = "normal";
-        }
-        else
-        {
-            massa_s = "pesado";
-        }
-        
-        if (altura < 160)
-        {
-            altura_s = "baixo";
-        }
-        else if( altura < 190)
-        {
-            altura_s = "medio";
-        }
-        else
-        {
-            altura_s = "alto";
-        }
-        // RULE 1 : IF massa IS magro THEN empurrao IS fraco;
-        if (massa_s == "magro") 
-        {
-            empurrao_s = "fraco";
-        }
-        
-        //RULE 2 : IF massa IS pesado THEN empurrao IS forte; 
-        if (massa_s == "pesado")
-        {
-            empurrao_s = "forte";
-        }
-        
-        //RULE 3 : IF massa IS normal AND altura IS alto THEN empurrao IS medio;
-        if(massa_s == "normal" && altura_s == "alto")
-        {
-            empurrao_s = "medio";
-        }
-        //RULE 4 : IF massa IS normal AND altura IS baixo THEN empurrao IS fraco;
-        if(massa_s == "normal" && altura_s == "baixo")
-        {
-            empurrao_s = "fraco";
-        }
-        //RULE 5 : IF massa IS normal AND altura IS medio THEN empurrao IS medio;
-        if(massa_s == "normal" && altura_s == "medio")
-        {
-            empurrao_s = "medio";
-        }
-        
+
         
         // confere se o oponente e gentil ou nao
         oponente_gentil = oponentes[estAtu.getLin()][estAtu.getCol()].charAt((oponentes[estAtu.getLin()][estAtu.getCol()].length()-1));
+        
+        //fuzzy
+        intensidade_empurrao_agente = this.intensidadeAgente(massa, altura);
+        
+        //(massa * altura/2)/altura;
+        intensidade_empurrao_real = this.intensidadeReal(massa, altura);
+            
+        if (intensidade_empurrao_agente >= intensidade_empurrao_real)
+        {
+            this.empurrao_certo ++;
+        }
+        else
+        {
+            this.empurrao_errado ++;
+        }
+        this.total++;
+        
+        //return abs((agente - real)/real)*100;
+        erroPorc = this.erroPorcentagem(intensidade_empurrao_real, intensidade_empurrao_agente);
+        this.erroMedio += erroPorc;
+        
+     
         
         //tabela de custos para multiplicar 
         if (empurrar == 0){
@@ -281,8 +343,6 @@ public class Agente implements PontosCardeais {
         }
             
         custo_total = custo_total + custo_acao*custo_empurrar;
-        
-        
         
         
         System.out.println("--- Mente do Agente ---");
